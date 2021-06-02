@@ -1,0 +1,89 @@
+<!-- This file is given to the client in the main route -->
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Products list</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+</head>
+<body>
+    <h1>List of Products</h1>
+    <table id="productsTable"class="table table-striped table-hover">
+        <tr id="rowHeader">
+            <th>Name</th>
+            <th>Price</th>
+            <th>Brand</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+    </table>
+    <button id="btnAdd" class="btn btn-secondary">Add product</button>
+    
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        const btnAdd = document.getElementById('btnAdd');
+        const table = document.getElementById('productsTable');
+        let signal = document.createElement('p');
+        axios.get('http://127.0.0.1:3000/products')
+        .then(response => {
+            console.log(response);
+            populateTable(response.data);
+        })
+        .catch(error => {
+            console.log(error.response);
+            alert(`Problem when retrieving products info ${error.response}`);
+        });
+
+        function populateTable(products){
+            products.forEach(m => { 
+                let row = table.insertRow(); 
+                let cellName = row.insertCell();
+                let cellPrice = row.insertCell();
+                let cellBrand = row.insertCell();
+                let cellEdit = row.insertCell();
+                let cellDelete = row.insertCell();
+
+                cellName.innerText = m.name;
+                cellPrice.innerText = m.price;
+                cellBrand.innerText = m.brand;
+
+                btnEdit = document.createElement('button');
+                btnEdit.className = "btn btn-warning";
+                btnEdit.appendChild(document.createTextNode('Edit'));
+                btnEdit.addEventListener('click', () => { window.location.replace(`http://127.0.0.1:3000/products/${m._id}/edit`) });
+                cellEdit.appendChild(btnEdit);
+
+                btnDelete = document.createElement('button');
+                btnDelete.className = "btn btn-danger";
+                btnDelete.appendChild(document.createTextNode('Delete'));
+                btnDelete.addEventListener('click', (event) => {
+                    let productId = m._id;
+                    axios.delete(`http://127.0.0.1:3000/products/${productId}`)
+                    .then(response => {
+                        console.log(response);
+                        alert('Product deleted successfully');
+                        row.parentNode.removeChild(row);
+                    })
+                    .catch(error => {
+                        console.log(error.response);
+                        alert(`Problem when deleting the products info ${error.response}`);
+                    });
+                });
+                cellDelete.appendChild(btnDelete);
+            });
+        }
+        
+        
+        btnAdd.addEventListener('click', () => {
+            window.location.replace(`http://127.0.0.1:3000/products/create`);
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+</body>
+</html>
+

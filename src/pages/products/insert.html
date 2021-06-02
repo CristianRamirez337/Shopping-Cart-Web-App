@@ -1,0 +1,79 @@
+<!-- This file is given to the client in the main route -->
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Adding a new product</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+</head>
+<body>
+    <h1>Input data for the new product</h1>
+    <form>
+        <div class="mb-3">
+            <label for="txtName" class="form-label">Name:</label>
+            <input type="text" class="form-control" id="txtName" aria-describedby="productName" value="Name">
+            <div id="productName" class="form-text">Input the name of the product.</div>
+        </div>
+
+
+        <div class="mb-3">
+            <label for="txtPrice" class="form-label">Price:</label>
+            <input type="number" class="form-control" id="txtPrice" aria-describedby="productPrice">
+            <div id="productPrice" class="form-text">Input a positive number.</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="txtBrand" class="form-label">Brand:</label>
+            <input type="text" class="form-control" id="txtBrand" aria-describedby="productBrand">
+            <div id="productBrand" class="form-text">Input the brand of the product.</div>
+        </div>
+
+        <input type="submit" id="submit" value="Add product" class="btn btn-primary"> 
+    </form>
+    
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        const txtName = document.getElementById('txtName');
+        const txtPrice = document.getElementById('txtPrice');
+        const txtBrand = document.getElementById('txtBrand');
+        
+        const btnSubmit = document.getElementById('submit');
+        btnSubmit.addEventListener("click", (e) => {
+            e.preventDefault();
+            
+            let name = txtName.value.trim();
+            let price = txtPrice.value.trim();
+            let brand = txtBrand.value.trim();
+
+            // Comment to check out how server validation is working too
+            if (name === '') { alert('Specify a name'); return; }
+            if (price ==='' || isNaN(price)) { alert('Input valid price'); return; }
+
+            axios.post( 
+                'http://127.0.0.1:3000/products/create', 
+                {
+                    name: name,
+                    price: price,
+                    brand: brand
+                }
+            )
+            .then(response => {
+                console.log(response);
+                alert(`Product inserted successfully`);
+                window.location.replace('http://127.0.0.1:3000/Products/all');
+            })
+            .catch(error => {
+                console.log(error.response.data)
+                alert(`Problem when inserting product ${error.response.data}`);
+            });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+</body>
+</html>
+
