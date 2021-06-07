@@ -20,12 +20,16 @@
         </tr>
     </table>
     <button id="btnAdd" class="btn btn-secondary">Add product</button>
+    <submit id="btnGenerate" class="btn btn-dark">Generate random products</submit>
+    <button id="btnExit" class="btn btn-primary">Exit</button>
     
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script>
         const btnAdd = document.getElementById('btnAdd');
+        const btnGenerate = document.getElementById('btnGenerate');
         const table = document.getElementById('productsTable');
-        let signal = document.createElement('p');
+        const btnExit = document.getElementById('btnExit');
+
         axios.get('http://127.0.0.1:3000/products')
         .then(response => {
             console.log(response);
@@ -79,6 +83,21 @@
         btnAdd.addEventListener('click', () => {
             window.location.replace(`http://127.0.0.1:3000/products/create`);
         });
+
+        btnGenerate.addEventListener('click', () => {
+            axios.get('http://127.0.0.1:3000/generate')
+            .then(response => {
+                console.log(response);
+                alert("Three products generated automatically");
+                location.reload();
+            })
+            .catch(error => {
+                console.log(error.response);
+
+            })
+        })
+
+        btnExit.addEventListener('click', () => { window.location.replace('http://127.0.0.1:3000/') });
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>

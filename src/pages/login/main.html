@@ -8,36 +8,49 @@
 </head>
 
 <body>
-  <div class="card mb-3" style="max-width: 540px;">
-    <div class="row g-0">
-      <div class="col-md-4">
-        <img src="..." id="imageUser">
-      </div>
-      <div class="col-md-8">
-        <div class="card-body">
-          <h5 class="card-title" id="welcomeM">Card title</h5>
-          <p class="card-text" id="cardTxt"> This content is a little bit longer.</p>
-          <p class="card-text"><small class="text-muted">Click one of the buttons below</small></p>
+  <div class="container">
+    <div class="row">
+      <div class="col align-self-center">
 
-          <input type="button" value="Edit User" class="btn btn-lg btn-info" id="btnEdit" />
-          <input type="button" value="Delete User" class="btn btn-lg btn-danger" id="btnDelete" />
+      <div class="container">
+        <div class="card mb-3" style="max-width: 540px;">
+          <div class="row g-0">
+            <div class="col-md-4">
+              <img src="..." id="imageUser">
+            </div>
+            <div class="col-md-8">
+              <div class="card-body">
+                <h5 class="card-title" id="welcomeM">Card title</h5>
+                <p class="card-text" id="cardTxt"> This content is a little bit longer.</p>
+                <p class="card-text"><small class="text-muted">Click one of the buttons below</small></p>
 
-          <div>
-            <br>
-            <input type="button" value="View Cart" class="btn btn-lg btn-success" id="btnCart" />
-            <input type="button" value="View Store" class="btn btn-lg btn-warning" id="btnStore" />
+                <input type="button" value="Edit User" class="btn btn-lg btn-info" id="btnEdit" />
+                <input type="button" value="Delete User" class="btn btn-lg btn-danger" id="btnDelete" />
+
+                <div>
+                  <br>
+                  <input type="button" value="View Cart" class="btn btn-lg btn-success" id="btnCart" />
+                  <input type="button" value="View Store" class="btn btn-lg btn-warning" id="btnStore" />
+                </div>
+                <div>
+                  <br>
+                  <input type="button" value="Logout" class="btn btn-lg btn-primary" id="logout" />
+                  <button type="button" class="btn btn-secondary btn-lg" disabled aria-disabled="true" tabindex="-1"
+                          id="btnModifyStore">Modify Store</button>
+                </div>
+
+              </div>
+            </div>
           </div>
-          <div>
-            <br>
-            <input type="button" value="Logout" class="btn btn-lg btn-primary" id="logout" />
-            <button type="button" class="btn btn-secondary btn-lg" disabled aria-disabled="true" tabindex="-1"
-                    id="btnModifyStore">Modify Store</button>
-          </div>
-
         </div>
       </div>
+
+
+      </div>
+
     </div>
   </div>
+
 
 
 
@@ -59,9 +72,10 @@
 
     // Buttons
     const btnEdit = document.getElementById('btnEdit');
+    const btnDelete = document.getElementById('btnDelete'); // ----- not necessary?
     const btnCart = document.getElementById('btnCart');
-    const btnLogout = document.getElementById('logout');
     const btnStore = document.getElementById('btnStore');
+    const btnLogout = document.getElementById('logout');
     const btnProducts = document.getElementById('btnModifyStore');
 
 
@@ -88,12 +102,17 @@
           stringValue = "https://pokeres.bastionbot.org/images/pokemon/1.png";
           btnProducts.setAttribute('aria-disabled', 'false');
           btnProducts.disabled = false;
+          btnCart.style.display = "none";
+          btnDelete.style.display = "none";
+          btnStore.style.display = "none";
+          btnEdit.style.display = "none";
 
         } else {
           cardTxt.innerText = ("Email: " + user.email + '\n' + "Client");
           stringValue = "data:image/jpg;base64," + (user.avatar.data);
           btnProducts.setAttribute('aria-disabled', 'true');
           btnProducts.disabled = true;
+          btnProducts.style.display = "none";
         }
 
         imageUser.setAttribute('height', 200);
@@ -118,6 +137,13 @@
         });
     }
 
+    // View Cart function
+    btnCart.addEventListener('click', () => { window.location.replace('http://127.0.0.1:3000/') });
+
+    // View Store function
+    btnStore.addEventListener('click', () => { window.location.replace('http://127.0.0.1:3000/store') });
+    // View Store Modification function
+    btnProducts.addEventListener('click', () => { window.location.replace('http://127.0.0.1:3000/products/all') });
 
     btnLogout.addEventListener("click", (e) => {
       axios.post('http://127.0.0.1:3000/logout') // No params, the cookie handles it all

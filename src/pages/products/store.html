@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Store</title>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+        <div class="col align-self-start">
+            <h1>Welcome to the shop</h1>
+            <br>
+            <div class = container>
+
+                <div class="row">
+
+                    <div class="col-9">
+                        <select class="form-select" aria-label="Default select example" id="select">
+                            <option selected>Select product</option>
+                            <!--<option value="1">One</option>-->
+                        </select>
+                    </div>
+                    <div class="col-3">
+                        <button type="button" class="btn btn-primary" id="btnAdd" >Add</button>
+                    </div>
+                </div>
+            </div>
+            <br>
+        </div>
+        </div>
+
+        <div class="row">
+            <h3>List of products selected</h3>
+            <table id="productsTable"class="table table-striped table-hover">
+                <tr id="rowHeader">
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Brand</th>
+                    <th>Quantity</th>
+                        <!--<input type="number" class="form-control" id="quantity" aria-describedby="#">-->
+                    <th>Delete</th>
+                </tr>
+            </table>
+        </div>
+        <div class="row">
+            <div class="col-3">
+                <button type="button" class="btn btn-success" id="btnAddCart" >Add to cart</button>
+            </div>
+
+        </div>
+    </div>
+
+
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+
+    <script>
+        const table = document.getElementById('productsTable');
+        const btnAdd = document.getElementById('btnAdd');
+        const btnAddCart = document.getElementById('btnAddCart');
+        const select = document.getElementById('select');
+        let product = {};
+
+        axios.get('http://127.0.0.1:3000/products')
+            .then(response => {
+                product = response.data;
+                populateSelect(product);
+            })
+            .catch(error => {
+                console.log(error.response);
+                alert(`Problem when retrieving products info ${error.response}`);
+            });
+
+        function populateSelect(products){
+            let i = 0;
+            products.forEach(m => {
+                let option = document.createElement('option');
+                option.value = String(i);
+                i++;
+                option.innerText = m.name;
+                select.appendChild(option);
+            })
+
+            // --------------------------------------
+            // HACER UN MODELO DE DB PARA EL CARRITO?
+            //
+        }
+
+        function populateTable(product){
+            let row = table.insertRow();
+            let cellName = row.insertCell();
+            let cellPrice = row.insertCell();
+            let cellBrand = row.insertCell();
+            let cellQuantity = row.insertCell();
+            let cellDelete = row.insertCell();
+
+            cellName.innerText = product.name;
+            cellPrice.innerText = product.price;
+            cellBrand.innerText = product.brand;
+            cellQuantity.innerText = product.quantity;
+
+            let btnDelete = document.createElement('button');
+            btnDelete.className = "btn btn-danger";
+            btnDelete.appendChild(document.createTextNode('Delete'));
+
+            btnDelete.addEventListener('click', (event) => {
+                row.parentElement.removeChild(row);
+            });
+            cellDelete.appendChild(btnDelete);
+
+        }
+
+        btnAdd.addEventListener('click', () => {
+            let productIndex = select.options[select.selectedIndex].value;
+            if (productIndex !== "Select product"){
+                populateTable(product[productIndex]);
+            }
+        });
+
+        btnAddCart.addEventListener('click', () => { window.location.replace('http://127.0.0.1:3000/') });
+
+    </script>
+</body>
+</html>

@@ -79,6 +79,35 @@ function requireLogin(req, res, next){
     }
 }
 
+// middleware that add the user
+function requireLoginRoot(req, res, next){
+    let accessToken = req.cookies.authorization
+    // if there is no token stored in cookies, the request is unauthorized
+    if (!accessToken){
+        console.log('Unauthorized user, redirecting to login');
+        return res.redirect('/login');
+    }
+
+    try{
+        // use the jwt.verify method to verify the access token, itthrows an error if the token has expired or has a invalid signature
+        payload = jwt.verify(accessToken, secret)
+        console.log('Logged user accessing the site ' + payload.username);
+        payloadUser = payload.username;
+        req.user = payload; // you can retrieve further details from the database. Here I am just taking the name to render it wherever it is needed.
+        if (payload.username === 'cris'){
+            next()
+        } else {
+            return res.redirect('/');
+        }
+
+    }
+    catch(e){
+        //if an error occured return request unauthorized error, or redirect to login
+        // return res.status(401).send():
+        res.redirect(403, '/login');
+    }
+}
+
 
 
 // *************/ USER REGISTER PROFILE\ *************
@@ -240,10 +269,13 @@ app.route('/users/:id').delete(requireLogin, (req, res) => {
 
 
 // *************---------- /Shopping Products\---------- *************
-// Basic route
-// Show all the products available
-app.route('/generate').get((req, res) => {
-    for (i=0; i<10; i++){
+// Access store
+app.route('/store').get(requireLogin, (req, res) =>{
+    res.sendFile('store.html', {root: './src/pages/products/'});
+});
+
+app.route('/generate').get(requireLoginRoot, (req, res) => {
+    for (i=0; i<3; i++){
         nameP = generateRandomString(10);
         price = generateRandomInt(0,10000);
         brand = generateRandomString(5);
@@ -258,11 +290,11 @@ app.route('/generate').get((req, res) => {
 });
 
 // Create module
-app.route('/products/create').get((req, res) =>{
+app.route('/products/create').get(requireLoginRoot, (req, res) =>{
     res.sendFile('insert.html', {root: './src/pages/products/'});
 });
 
-app.route('/products/create').post((req, res) =>{
+app.route('/products/create').post(requireLoginRoot, (req, res) =>{
     let{ name, price, brand} = req.body; // JS object deconstruction
     
     let product = new ProductModel({name: name, price: price, brand: brand});
@@ -273,16 +305,21 @@ app.route('/products/create').post((req, res) =>{
 });
 
 // Show all the products available
-app.route('/products/all').get((req, res) => {
-    res.sendFile('productsList.html', {root: './src/pages/products/'});
+app.route('/products/all').get(requireLoginRoot, (req, res) => {
+    ejs.renderFile('./src/pages/products/productsList.html', {user: req.user}, null, function(err, str){
+        if (err) res.status(503).send(`error when rendering the view: ${err}`);
+        else {
+            res.end(str);
+        }
+    });
 });
 
-app.route('/products').get(async (req, res) => {
+app.route('/products').get(requireLogin, async (req, res) => {
     let allProducts = await ProductModel.find();
     res.send(allProducts);
 });
 
-app.route('/products/:id').get(async (req, res) => {
+app.route('/products/:id').get(requireLogin, async (req, res) => {
     let productId  = req.params.id;
     let product = await ProductModel.findOne({_id: productId});
     if (product)
@@ -291,7 +328,7 @@ app.route('/products/:id').get(async (req, res) => {
         res.status(404).end(`Product with id ${productId} does not exist`)
 });
 
-app.route('/products/:id').put((req, res) => {
+app.route('/products/:id').put(requireLoginRoot, (req, res) => {
     let productId  = req.params.id;
     let{ name, price, brand} = req.body;
     ProductModel.findOneAndUpdate(
@@ -306,14 +343,14 @@ app.route('/products/:id').put((req, res) => {
     .catch(error => { console.log(error); res.status(503).end(`Could not update product ${error}`); });
 });
 
-app.route('/products/:id').delete((req, res) => {
+app.route('/products/:id').delete(requireLoginRoot, (req, res) => {
     let productId  = req.params.id;
     ProductModel.findOneAndDelete({_id: productId})
     .then(product => res.send(product))
     .catch(error => { console.log(error); res.status(503).end(`Could not delete product ${error}`); });
 });
 
-app.route('/products/:id/edit').get((req, res) => {
+app.route('/products/:id/edit').get(requireLoginRoot, (req, res) => {
     let productId  = req.params.id;
 
     // load the product as string, leaver some markers and replace the markers with the info you need
@@ -327,7 +364,7 @@ app.route('/products/:id/edit').get((req, res) => {
     });
 });
 
-app.route('/products/insert/insertMany/').get((req, res) => {
+app.route('/products/insert/insertMany/').get(requireLoginRoot, (req, res) => {
     for (i=0; i<10; i++){
         nameP = generateRandomString(10);
         price = generateRandomInt(0,10000);
