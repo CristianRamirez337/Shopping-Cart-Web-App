@@ -53,13 +53,13 @@
                 cellPrice.innerText = m.price;
                 cellBrand.innerText = m.brand;
 
-                btnEdit = document.createElement('button');
+                let btnEdit = document.createElement('button');
                 btnEdit.className = "btn btn-warning";
                 btnEdit.appendChild(document.createTextNode('Edit'));
                 btnEdit.addEventListener('click', () => { window.location.replace(`http://127.0.0.1:3000/products/${m._id}/edit`) });
                 cellEdit.appendChild(btnEdit);
 
-                btnDelete = document.createElement('button');
+                let btnDelete = document.createElement('button');
                 btnDelete.className = "btn btn-danger";
                 btnDelete.appendChild(document.createTextNode('Delete'));
                 btnDelete.addEventListener('click', (event) => {

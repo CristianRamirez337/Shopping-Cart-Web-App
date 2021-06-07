@@ -8,19 +8,22 @@
     <div class="container">
         <div class="row">
         <div class="col align-self-start">
-            <h1>Welcome to the shop</h1>
+            <h1>Welcome to the shop <%= user.username %></h1>
             <br>
             <div class = container>
 
                 <div class="row">
 
-                    <div class="col-9">
+                    <div class="col-8">
                         <select class="form-select" aria-label="Default select example" id="select">
                             <option selected>Select product</option>
                             <!--<option value="1">One</option>-->
                         </select>
                     </div>
-                    <div class="col-3">
+                    <div class="col-2">
+                        <input type="number" class="form-control" id="quantity" step=1 min=1 placeholder=1 value="1">
+                    </div>
+                    <div class="col-2">
                         <button type="button" class="btn btn-primary" id="btnAdd" >Add</button>
                     </div>
                 </div>
@@ -45,6 +48,8 @@
         <div class="row">
             <div class="col-3">
                 <button type="button" class="btn btn-success" id="btnAddCart" >Add to cart</button>
+                <button type="button" class="btn btn-secondary" id="btnBack" >Back</button>
+
             </div>
 
         </div>
@@ -57,11 +62,15 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
 
     <script>
+        const userId = '<%= user.id %>';
         const table = document.getElementById('productsTable');
         const btnAdd = document.getElementById('btnAdd');
         const btnAddCart = document.getElementById('btnAddCart');
         const select = document.getElementById('select');
+        const quantity = document.getElementById('quantity');
+        const btnBack = document.getElementById('btnBack');
         let product = {};
+        let cart = [];
 
         axios.get('http://127.0.0.1:3000/products')
             .then(response => {
@@ -73,6 +82,19 @@
                 alert(`Problem when retrieving products info ${error.response}`);
             });
 
+        axios.get(`http://127.0.0.1:3000/cart/${userId}`)
+            .then(response => {
+                let cart = response.data;
+                cart.forEach(p => {
+                    populateTable(p, true);
+                })
+
+            })
+            .catch(error => {
+                console.log(error.response);
+                alert(`Problem when retrieving cart info ${error.response}`);
+            });
+
         function populateSelect(products){
             let i = 0;
             products.forEach(m => {
@@ -82,13 +104,10 @@
                 option.innerText = m.name;
                 select.appendChild(option);
             })
-
-            // --------------------------------------
-            // HACER UN MODELO DE DB PARA EL CARRITO?
-            //
         }
 
-        function populateTable(product){
+        function populateTable(product, fromDB){
+
             let row = table.insertRow();
             let cellName = row.insertCell();
             let cellPrice = row.insertCell();
@@ -99,7 +118,16 @@
             cellName.innerText = product.name;
             cellPrice.innerText = product.price;
             cellBrand.innerText = product.brand;
-            cellQuantity.innerText = product.quantity;
+
+            if (fromDB) {
+                cellQuantity.innerText = product.quantity;
+            } else {
+                cellQuantity.innerText = String(parseInt(quantity.value.trim()));
+                // Add to array product
+                product["quantity"] = String(parseInt(quantity.value.trim()));
+            }
+
+            cart.push(product);
 
             let btnDelete = document.createElement('button');
             btnDelete.className = "btn btn-danger";
@@ -107,6 +135,7 @@
 
             btnDelete.addEventListener('click', (event) => {
                 row.parentElement.removeChild(row);
+                cart.splice(cart.indexOf(product), 1);
             });
             cellDelete.appendChild(btnDelete);
 
@@ -114,12 +143,40 @@
 
         btnAdd.addEventListener('click', () => {
             let productIndex = select.options[select.selectedIndex].value;
-            if (productIndex !== "Select product"){
-                populateTable(product[productIndex]);
+            let quantityValue = quantity.value.trim();
+            if (parseInt(quantityValue) < 1){
+                alert("Please insert a valid number");
+            } else {
+                if (productIndex !== "Select product"){
+                    populateTable(product[productIndex], false);
+                } else {
+                    alert("Please select a product");
+                }
             }
         });
 
-        btnAddCart.addEventListener('click', () => { window.location.replace('http://127.0.0.1:3000/') });
+        btnAddCart.addEventListener('click', () => {
+            const userId = '<%= user.id %>';
+            console.log("user = " + userId);
+
+            axios.post('http://127.0.0.1:3000/cart/register',{
+                userId : '<%= user.id %>',
+                cart : cart
+            })
+                .then(response => {
+                    console.log(response);
+                    alert(`Cart registered successfully`);
+                    window.location.replace('http://127.0.0.1:3000/check/cart');
+                })
+                .catch(error => {
+                    console.log(error.response)
+                    alert(`Problem when inserting cart ${error.response}`);
+                });
+        });
+
+        btnBack.addEventListener('click', () => {
+            window.location.replace(`http://127.0.0.1:3000/`);
+        });
 
     </script>
 </body>

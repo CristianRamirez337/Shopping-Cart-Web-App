@@ -16,6 +16,7 @@ app.use(cookieParser());
 require('./src/database');
 let ProductModel = require('./src/models/product');
 let UsersModel = require('./src/models/user');
+let CartModel = require('./src/models/cart');
 
 
 // --------------- ROOT USER ---------------
@@ -136,6 +137,7 @@ app.post('/users/register', upload.single('avatar'), async (req, res) => {
         }
     });
 
+    //let previousUser = UsersModel.findOne({name: name})
 
 });
 
@@ -235,6 +237,7 @@ app.route('/users/:id/edit').get(requireLogin, (req, res) => {
 
 app.put('/users/:id', upload.single('avatar'), requireLogin, async (req, res) => {
     let userId = req.params.id;
+
     let user = await UsersModel.findOne({_id: userId});
     user.name = req.body.name;
     user.email = req.body.email;
@@ -265,13 +268,62 @@ app.route('/users/:id').delete(requireLogin, (req, res) => {
 
 
 
+// *************---------- / CART \---------- *************
+
+app.post('/cart/register', requireLogin, async (req, res) => {
+    let userId = req.body.userId;
+    let cart = req.body.cart;
+
+    let registeredCart = await CartModel.findOne({userId: userId});
+
+    if (registeredCart) {
+        registeredCart.cart = cart;
+        registeredCart.save()
+            .then(user => res.send(user))
+            .catch(error => { console.log(error); res.status(503).end(`Could not update user ${error}`); });
+
+    } else {
+        let newCart = await new CartModel({userId: userId, cart: cart});
+        newCart.save((err) => {
+
+            if (err) res.status(503).send(`error: ${err}`);
+            else{
+
+                res.send(newCart);
+            }
+        });
+    }
+});
+
+app.route('/cart/:id').get(requireLogin, async (req, res) => {
+    let userId  = req.params.id;
+    let userCart = await CartModel.findOne({userId: userId});
+    if (userCart) {
+        res.send(userCart.cart);
+    }
+});
+
+app.route('/check/cart').get(requireLogin, (req, res) =>{
+    ejs.renderFile('./src/pages/products/cart.html', {user: req.user}, null, function(err, str){
+        if (err) res.status(503).send(`error when rendering the view: ${err}`);
+        else {
+            res.end(str);
+        }
+    });
+});
+
 
 
 
 // *************---------- /Shopping Products\---------- *************
 // Access store
 app.route('/store').get(requireLogin, (req, res) =>{
-    res.sendFile('store.html', {root: './src/pages/products/'});
+    ejs.renderFile('./src/pages/products/store.html', {user: req.user}, null, function(err, str){
+        if (err) res.status(503).send(`error when rendering the view: ${err}`);
+        else {
+            res.end(str);
+        }
+    });
 });
 
 app.route('/generate').get(requireLoginRoot, (req, res) => {
