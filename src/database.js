@@ -1,7 +1,7 @@
 let mongoose = require('mongoose'); // Returns singleton object
 mongoose.set('useCreateIndex', true); 
 const server = 'localhost'; 
-const database = 'productsDB';      
+const database = 'shoppingCartDB';
 
 class Database {
   constructor() {

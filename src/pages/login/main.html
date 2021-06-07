@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>User Info</title>
+</head>
+
+<body>
+  <div class="card mb-3" style="max-width: 540px;">
+    <div class="row g-0">
+      <div class="col-md-4">
+        <img src="..." id="imageUser">
+      </div>
+      <div class="col-md-8">
+        <div class="card-body">
+          <h5 class="card-title" id="welcomeM">Card title</h5>
+          <p class="card-text" id="cardTxt"> This content is a little bit longer.</p>
+          <p class="card-text"><small class="text-muted">Click one of the buttons below</small></p>
+
+          <input type="button" value="Edit User" class="btn btn-lg btn-info" id="btnEdit" />
+          <input type="button" value="Delete User" class="btn btn-lg btn-danger" id="btnDelete" />
+
+          <div>
+            <br>
+            <input type="button" value="View Cart" class="btn btn-lg btn-success" id="btnCart" />
+            <input type="button" value="View Store" class="btn btn-lg btn-warning" id="btnStore" />
+          </div>
+          <div>
+            <br>
+            <input type="button" value="Logout" class="btn btn-lg btn-primary" id="logout" />
+            <button type="button" class="btn btn-secondary btn-lg" disabled aria-disabled="true" tabindex="-1"
+                    id="btnModifyStore">Modify Store</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+
+
+  <script>
+
+    var loggedUser ;
+    const userId = '<%= user.id %>';
+
+    const welcomeMessage = document.getElementById('welcomeM');
+    const imageUser = document.getElementById('imageUser');
+    const cardTxt = document.getElementById('cardTxt');
+
+    // Buttons
+    const btnEdit = document.getElementById('btnEdit');
+    const btnCart = document.getElementById('btnCart');
+    const btnLogout = document.getElementById('logout');
+    const btnStore = document.getElementById('btnStore');
+    const btnProducts = document.getElementById('btnModifyStore');
+
+
+    axios.get(`http://127.0.0.1:3000/users/${userId}`)
+    .then(response => {
+      loggedUser = response.data;
+      populateInfo(response.data);
+
+    })
+    .catch(error => {
+      console.log(error.response);
+      alert(`Problem when retrieving user info ${error.response}`);
+    });
+
+
+    function populateInfo(user){
+
+        welcomeMessage.innerText = ("Welcome " + user.name);
+
+        let stringValue = '';
+
+        if (user.root) {
+          cardTxt.innerText = ("Email: " + user.email + '\n' + "Root User");
+          stringValue = "https://pokeres.bastionbot.org/images/pokemon/1.png";
+          btnProducts.setAttribute('aria-disabled', 'false');
+          btnProducts.disabled = false;
+
+        } else {
+          cardTxt.innerText = ("Email: " + user.email + '\n' + "Client");
+          stringValue = "data:image/jpg;base64," + (user.avatar.data);
+          btnProducts.setAttribute('aria-disabled', 'true');
+          btnProducts.disabled = true;
+        }
+
+        imageUser.setAttribute('height', 200);
+        imageUser.setAttribute('width', 200);
+        imageUser.setAttribute('src', stringValue);
+
+        // Edit function
+        btnEdit.addEventListener('click', () => { window.location.replace(`http://127.0.0.1:3000/users/${user._id}/edit`) });
+
+        // Delete function
+        btnDelete.addEventListener('click', (event) => {
+          let userId = user._id;
+          axios.delete(`http://127.0.0.1:3000/users/${userId}`)
+          .then(response => {
+            alert('User deleted successfully');
+            window.location.replace('http://127.0.0.1:3000/login')
+          })
+          .catch(error => {
+            console.log(error.response);
+            alert(`Problem when deleting the user info ${error.response}`);
+          });
+        });
+    }
+
+
+    btnLogout.addEventListener("click", (e) => {
+      axios.post('http://127.0.0.1:3000/logout') // No params, the cookie handles it all
+              .then(response => {
+                console.log(response);
+                alert(`You have been logged out, you are being redirected`);
+                window.location.replace('http://127.0.0.1:3000/login');
+              })
+              .catch(error => {
+                console.log(error.response.data)
+                alert(`Error: ${error.response.data}`);
+              });
+    });
+  </script>
+</body>
+</html>
